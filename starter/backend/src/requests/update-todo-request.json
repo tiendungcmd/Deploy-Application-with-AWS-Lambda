@@ -1,0 +1,20 @@
+{
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string"
+      },
+      "todoId": {
+        "type": "string"
+      },
+      "dueDate": {
+        "type": "string",
+        "format": "date"
+      },
+      "done": {
+        "type": "boolean"
+      }
+    },
+    "required": ["name", "todoId", "dueDate", "done"]
+  }
+  
