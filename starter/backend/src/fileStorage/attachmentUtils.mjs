@@ -1,21 +1,32 @@
-import * as AWS from 'aws-sdk';
-import { createLogger } from '../auth/logger';
+import * as AWS from "@aws-sdk/client-s3";
+import { createLogger } from '../auth/logger.mjs';
+import {GetObjectCommand, S3Client} from "@aws-sdk/client-s3";
+import {getSignedUrl} from "@aws-sdk/s3-request-presigner";
 
+const client = new S3Client({
+    region: 'us-east-2',
+});
 const logger = createLogger('attachmentUtils');
 const bucketName = process.env.S3_BUCKET;
 const urlExpiration = process.env.SIGNED_URL_EXPIRATION;
-const s3 = new AWS.S3();
+
 
 export function getAttachmentUrl(attachmentId) {
   return `https://${bucketName}.s3.amazonaws.com/${attachmentId}`;
 }
 
-export function getUploadUrl(attachmentId) {
-  return s3.getSignedUrl('putObject', {
+export async function getUploadUrl(attachmentId) {
+  logger.info(`Attachment ${attachmentId} get`);
+  return await getSignedUrl(client, new GetObjectCommand({
     Bucket: bucketName,
-    Key: attachmentId,
-    Expires: parseInt(urlExpiration),
-  });
+    Key: attachmentId
+  }));
+  logger.info(`Attachment ${attachmentId} get`);
+  // return client.getSignedUrl('putObject', {
+  //   Bucket: bucketName,
+  //   Key: attachmentId,
+  //   Expires: parseInt(urlExpiration),
+  // });
 }
 
 export async function deleteAttachment(attachmentId) {

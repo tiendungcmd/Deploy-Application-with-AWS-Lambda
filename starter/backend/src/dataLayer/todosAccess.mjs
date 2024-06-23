@@ -1,27 +1,27 @@
-import * as AWS  from 'aws-sdk'
-import * as AWSXRay from 'aws-xray-sdk'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
+import { createLogger } from '../auth/logger.mjs';
+const client = new DynamoDBClient({
+  region: "us-east-1",
+});
 
-const ddb = AWSXRay.captureAWSClient(new AWS.DynamoDB());
-const XAWS = AWSXRay.captureAWSClient(AWS)
-//import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-
-//const docClient = new DynamoDBClient({region: 'us-east-1'});
-//const docClient = new AWS.DynamoDB.DocumentClient()
-const docClient = new XAWS.DynamoDB.DocumentClient();
+const docClient = DynamoDBDocument.from(client);
+//--------------
+const logger = createLogger('Todo');
 const todosTable = process.env.TODOS_TABLE;
 const todoCreatedIndex = process.env.TODOS_CREATED_AT_INDEX
+const bucketName = process.env.S3_BUCKET;
 console.log("After creating DocumentClient");
 export async function getAllTodos(userId) {
   const result = await docClient
     .query({
       TableName: todosTable,
       IndexName: todoCreatedIndex,
-      KeyConditionExpression: 'paritionKey = :paritionKey',
+      KeyConditionExpression: 'userId = :userId',
       ExpressionAttributeValues: {
-        ':paritionKey': userId,
+        ':userId': userId,
       },
-    })
-    .promise();
+    });
 
   return result.Items;
 }
@@ -30,10 +30,11 @@ export async function createTodo(todo) {
     .put({
       TableName: todosTable,
       Item: todo,
-    })
-    .promise();
+    });
 }
 export async function deleteTodo(todoId, userId) {
+  logger.info(`todoId delete ${todoId} `);
+  logger.info(`userId delete ${userId} `);
   await docClient
     .delete({
       TableName: todosTable,
@@ -41,11 +42,13 @@ export async function deleteTodo(todoId, userId) {
         userId: userId,
         todoId: todoId,
       },
-    })
-    .promise();
+    });
 }
 
 export async function updateTodo(todoId, userId, updatedTodo) {
+  logger.info(`todoId updateTodo ${todoId} `);
+  logger.info(`userId updateTodo ${userId} `);
+  logger.info(`updatedTodo ${updatedTodo} `);
   await docClient
     .update({
       TableName: todosTable,
@@ -62,9 +65,27 @@ export async function updateTodo(todoId, userId, updatedTodo) {
       ExpressionAttributeNames: {
         '#name': 'name',
       },
-    })
-    .promise();
+    });
 }
 
+
+export async function updateUrl(todoId, userId,imageId) {
+  logger.info(`todoId updateTodo ${todoId} `);
+  logger.info(`userId updateTodo ${userId} `);
+  
+  const url = `https://${bucketName}.s3.amazonaws.com/${imageId}`
+  await docClient
+    .update({
+      TableName: todosTable,
+      Key: {
+        userId: userId,
+        todoId: todoId,
+      },
+      UpdateExpression: "set attachmentUrl = :url",
+      ExpressionAttributeValues: {
+        ":url": url,
+      }
+    });
+}
 
 

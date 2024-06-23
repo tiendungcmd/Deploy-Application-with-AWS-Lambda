@@ -1,9 +1,17 @@
+import { updateUrl } from '../../dataLayer/todosAccess.mjs';
 import { getUploadUrl } from '../../fileStorage/attachmentUtils.mjs';
+import { getUserId } from '../auth/utils.mjs';
+import { v4 as uuidv4 } from 'uuid';
 export function handler(event) {
-  const attachmentId = event.pathParameters.attachmentId;
-
+  console.log(`Processing event ${event}`);
+  const attachmentId = event.pathParameters.todoId
   try {
-    const uploadUrl = getUploadUrl(attachmentId);
+    const todoId = event.pathParameters.todoId
+    const userId = getUserId(event.headers.Authorization);
+    const imageId = uuidv4()
+    console.log(`Processing event 2 ${event}`);
+    const uploadUrl = updateUrl(todoId,userId,imageId);
+    getUploadUrl(imageId);
     console.log(`Generated upload URL ${attachmentId}`);
     
     return {
@@ -27,4 +35,3 @@ export function handler(event) {
     };
   }
 }
-

@@ -1,29 +1,37 @@
 import {getUserId} from "../auth/utils.mjs";
 import { updateTodo } from '../../dataLayer/todosAccess.mjs';
+import middy from '@middy/core'
+import cors from '@middy/http-cors'
+import httpErrorHandler from '@middy/http-error-handler'
 
-export async function handler(event) {
-  const authorization = event.headers.Authorization
-  const userId = getUserId(authorization);
-  const { name, todoId, done } = JSON.parse(event.body);
-
-  // fetch the specific todo item using the todoId
-  // modify the required properties
-  // reuse the unchanged properties
-
-  await updateTodo(todoId, userId, {
-    name,
-    done,
-    dueDate: new Date().toISOString(),
-  });
-
-  return {
-    statusCode: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Credentials': true
-    },
-    body: JSON.stringify({
-      message: 'TODO updated successfully'
+export const handler = middy()
+  .use(httpErrorHandler())
+  .use(
+    cors({
+      credentials: true
     })
-  };
-}
+  )
+  .handler(async (event) => {
+    console.log('Processing event: ', event)
+
+    const authorization = event.headers.Authorization
+    const userId = getUserId(authorization);
+    const { name, todoId, done } = JSON.parse(event.body);
+  
+    await updateTodo(todoId, userId, {
+      name,
+      done,
+      dueDate: new Date().toISOString(),
+    });
+
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true
+      },
+      body: JSON.stringify({
+        message: 'TODO updated successfully'
+      })
+    }
+  })
