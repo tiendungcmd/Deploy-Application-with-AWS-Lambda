@@ -1,9 +1,11 @@
-import { createTodo } from '../../dataLayer/todosAccess.mjs';
 import { v4 as uuid } from 'uuid';
 import { getUserId } from '../auth/utils.mjs';
 import middy from '@middy/core'
 import cors from '@middy/http-cors'
 import httpErrorHandler from '@middy/http-error-handler'
+import { TodoAccess } from '../../dataLayer/todosAccess.mjs'
+
+const todoAccess = new TodoAccess()
 
 export const handler = middy()
   .use(httpErrorHandler())
@@ -27,7 +29,7 @@ export const handler = middy()
       createdAt: new Date().toISOString(),
       done: false
     };
-    await createTodo(newTodo);
+    await todoAccess.createTodo(newTodo);
 
     return {
       statusCode: 201,

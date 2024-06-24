@@ -64,7 +64,7 @@ export async function getUploadUrl(idToken, todoId) {
         }
       }
     )
-    console.log('received upload url: ' + JSON.stringify(response))
+    console.log('received upload url: ' + JSON.stringify(response.data.uploadUrl))
     return response.data.uploadUrl
   } catch (error) {
     console.log(error)

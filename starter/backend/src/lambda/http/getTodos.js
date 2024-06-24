@@ -1,9 +1,10 @@
-import { getAllTodos } from '../../dataLayer/todosAccess.mjs';
 import { getUserId } from "../auth/utils.mjs";
 import middy from '@middy/core'
 import cors from '@middy/http-cors'
 import httpErrorHandler from '@middy/http-error-handler'
+import { TodoAccess } from '../../dataLayer/todosAccess.mjs'
 
+const todoAccess = new TodoAccess()
 export const handler = middy()
   .use(httpErrorHandler())
   .use(
@@ -16,7 +17,7 @@ export const handler = middy()
 
     const authorization = event.headers.Authorization
     const userId = getUserId(authorization);
-    const items = await getAllTodos(userId);
+    const items = await todoAccess.getAllTodos(userId);
 
     return {
       statusCode: 200,

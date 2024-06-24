@@ -3,9 +3,11 @@ import cors from '@middy/http-cors'
 import httpErrorHandler from '@middy/http-error-handler'
 import { getUserId } from '../auth/utils.mjs';
 import { createLogger } from '../../utils/logger.mjs';
-import {getFormattedUrl, getUploadUrl} from "../../fileStorage/attachmentUtils.mjs";
+import {getFormattedUrl} from "../../fileStorage/attachmentUtils.mjs";
 import {setAttachmentUrl} from '../../businessLogic/todos.mjs'
+import { TodoAccess } from '../../dataLayer/todosAccess.mjs'
 
+const todoAccess = new TodoAccess()
 const logger = createLogger('Todos logger generateUploadUrl');
 
 export const handler = middy()
@@ -21,7 +23,7 @@ export const handler = middy()
     const userId = getUserId(event.headers.Authorization);
 
     const attachmentUrl = getFormattedUrl(todoId)
-    const uploadUrl = await getUploadUrl(todoId)
+    const uploadUrl = await todoAccess.getUploadUrl(todoId)
 
     await setAttachmentUrl(userId, todoId, image, attachmentUrl)
 

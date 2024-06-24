@@ -1,9 +1,10 @@
 import {getUserId} from "../auth/utils.mjs";
-import { updateTodo } from '../../dataLayer/todosAccess.mjs';
 import middy from '@middy/core'
 import cors from '@middy/http-cors'
 import httpErrorHandler from '@middy/http-error-handler'
+import { TodoAccess } from '../../dataLayer/todosAccess.mjs'
 
+const todoAccess = new TodoAccess()
 export const handler = middy()
   .use(httpErrorHandler())
   .use(
@@ -15,10 +16,11 @@ export const handler = middy()
     console.log('Processing event: ', event)
 
     const authorization = event.headers.Authorization
-    const userId = getUserId(authorization);
+    const userId = getUserId(authorization)
+    const todo = event.pathParameters.todoId
     const { name, todoId, done } = JSON.parse(event.body);
   
-    await updateTodo(todoId, userId, {
+    await todoAccess.updateTodo(todo, userId, {
       name,
       done,
       dueDate: new Date().toISOString(),
