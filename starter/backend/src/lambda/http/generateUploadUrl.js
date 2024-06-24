@@ -1,37 +1,33 @@
-import { updateUrl } from '../../dataLayer/todosAccess.mjs';
-import { getUploadUrl } from '../../fileStorage/attachmentUtils.mjs';
+import middy from '@middy/core'
+import cors from '@middy/http-cors'
+import httpErrorHandler from '@middy/http-error-handler'
 import { getUserId } from '../auth/utils.mjs';
-import { v4 as uuidv4 } from 'uuid';
-export function handler(event) {
-  console.log(`Processing event ${event}`);
-  const attachmentId = event.pathParameters.todoId
-  try {
-    const todoId = event.pathParameters.todoId
+import { createLogger } from '../../utils/logger.mjs';
+import {getFormattedUrl, getUploadUrl} from "../../fileStorage/attachmentUtils.mjs";
+import {setAttachmentUrl} from '../../businessLogic/todos.mjs'
+
+const logger = createLogger('Todos logger generateUploadUrl');
+
+export const handler = middy()
+  .use(httpErrorHandler())
+  .use(cors({
+    credentials: true
+  }))
+  .handler(async (event) => {
+    const todoId = event.pathParameters.todoId;
+    logger.info(`Uploading attachment for ${todoId}`)
+
+    const image = JSON.parse(event.body)
     const userId = getUserId(event.headers.Authorization);
-    const imageId = uuidv4()
-    console.log(`Processing event 2 ${event}`);
-    const uploadUrl = updateUrl(todoId,userId,imageId);
-    getUploadUrl(imageId);
-    console.log(`Generated upload URL ${attachmentId}`);
-    
+
+    const attachmentUrl = getFormattedUrl(todoId)
+    const uploadUrl = await getUploadUrl(todoId)
+
+    await setAttachmentUrl(userId, todoId, image, attachmentUrl)
+
     return {
-      statusCode: 200,
-      body: JSON.stringify({
-        uploadUrl,
-      }),
-    };
-  } catch (error) {
-    console.error(`Error ${attachmentId}`, error);
-    
-    return {
-      statusCode: 500,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Credentials': true
-    },
-      body: JSON.stringify({
-        error: 'Failed upload URL',
-      }),
-    };
-  }
-}
+      statusCode: 201, body: JSON.stringify({
+        uploadUrl
+      })
+    }
+  })

@@ -53,17 +53,22 @@ export async function deleteTodo(idToken, todoId) {
 }
 
 export async function getUploadUrl(idToken, todoId) {
-  const response = await Axios.post(
-    `${process.env.REACT_APP_API_ENDPOINT}/todos/${todoId}/attachment`,
-    '',
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${idToken}`
+  try {
+    const response = await Axios.post(
+      `${process.env.REACT_APP_API_ENDPOINT}/todos/${todoId}/attachment`,
+      '',
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`
+        }
       }
-    }
-  )
-  return response.data.uploadUrl
+    )
+    console.log('received upload url: ' + JSON.stringify(response))
+    return response.data.uploadUrl
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 export async function uploadFile(uploadUrl, file) {

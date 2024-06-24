@@ -69,10 +69,10 @@ export async function updateTodo(todoId, userId, updatedTodo) {
 }
 
 
-export async function updateUrl(todoId, userId,imageId) {
+export async function updateUrl(todoId, userId, image, imageId) {
   logger.info(`todoId updateTodo ${todoId} `);
   logger.info(`userId updateTodo ${userId} `);
-  
+
   const url = `https://${bucketName}.s3.amazonaws.com/${imageId}`
   await docClient
     .update({
@@ -81,8 +81,9 @@ export async function updateUrl(todoId, userId,imageId) {
         userId: userId,
         todoId: todoId,
       },
-      UpdateExpression: "set attachmentUrl = :url",
+      UpdateExpression: "set  image = :image, attachmentUrl = :url",
       ExpressionAttributeValues: {
+        ':image': image,
         ":url": url,
       }
     });
